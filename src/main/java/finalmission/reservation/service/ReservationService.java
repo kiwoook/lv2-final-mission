@@ -1,5 +1,6 @@
 package finalmission.reservation.service;
 
+import finalmission.common.exception.InvalidArgumentException;
 import finalmission.common.exception.NotFoundException;
 import finalmission.member.domain.Member;
 import finalmission.member.repository.MemberRepository;
@@ -64,7 +65,36 @@ public class ReservationService {
 
     @Transactional
     public ReservationInfoResponse reserve(ReserveRequest reserveRequest, Long memberId) {
-        Reservation reservation = reservationRepository.findById(reserveRequest.id())
+        return reserve(reserveRequest.id(), memberId);
+    }
+
+    @Transactional
+    public ReservationInfoResponse update(ReserveUpdateRequest updateRequest, Long memberId) {
+        Long newReservationId = updateRequest.newReservationId();
+        Long oldReservationId = updateRequest.oldReservationId();
+        reserve(newReservationId, memberId);
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException("해당 유저가 존재하지 않습니다. id = " + memberId));
+
+        Reservation newReservation = reservationRepository.findById(newReservationId)
+                .orElseThrow(() -> new NotFoundException("해당 예약이 존재하지 않습니다. id = " + newReservationId));
+
+        Reservation oldReservation = reservationRepository.findById(oldReservationId)
+                .orElseThrow(() -> new NotFoundException("해당 예약이 존재하지 않습니다 id = " + oldReservationId));
+
+        oldReservation.updateStatus(ReservationStatus.AVAILABLE);
+
+        Reserved reserved = reservedRepository.findByReservationAndMember(oldReservation, member)
+                .orElseThrow(() -> new NotFoundException("예약되지 않았습니다."));
+
+        reserved.updateReservation(newReservation);
+
+        return ReservationInfoResponse.of(newReservation);
+    }
+
+    public ReservationInfoResponse reserve(Long reservationId, Long memberId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new NotFoundException("해당 예약이 존재하지 않습니다."));
 
         if (reservation.isNotAvailable()) {
@@ -81,17 +111,18 @@ public class ReservationService {
         return ReservationInfoResponse.of(reservation);
     }
 
-    // TODO 예약 수정하기
-    @Transactional
-    public ReservationInfoResponse update(ReserveUpdateRequest updateRequest) {
+    public void cancel(Long reservedId, Long memberId) {
+        Reserved reserved = reservedRepository.findById(reservedId)
+                .orElseThrow(() -> new NotFoundException("예약되지 않았습니다."));
 
+        if (!reserved.sameMember(memberId)) {
+            throw new InvalidArgumentException("해당 예약자가 아닙니다.");
+        }
 
-        return null;
-    }
+        Reservation reservation = reserved.getReservation();
+        reservation.updateStatus(ReservationStatus.AVAILABLE);
 
-    // TODO 예약 취소
-    public ReservationInfoResponse cancel(){
-        return null;
+        reservedRepository.delete(reserved);
     }
 
 }

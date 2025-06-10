@@ -8,8 +8,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+@Getter
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 public class Reserved {
@@ -27,5 +29,13 @@ public class Reserved {
     public Reserved(Member member, Reservation reservation) {
         this.member = member;
         this.reservation = reservation;
+    }
+
+    public void updateReservation(Reservation reservation) {
+        this.reservation = reservation;
+    }
+
+    public boolean sameMember(Long memberId) {
+        return member.getId().equals(memberId);
     }
 }

@@ -55,11 +55,7 @@ public class Reservation {
         this.status = status;
     }
 
-    public Long getTrainerId() {
-        if (trainer == null) {
-            return null;
-        }
-
-        return trainer.getId();
+    public boolean isNotAvailable() {
+        return status != ReservationStatus.AVAILABLE;
     }
 }
