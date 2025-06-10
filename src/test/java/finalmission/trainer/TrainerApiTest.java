@@ -36,7 +36,6 @@ class TrainerApiTest {
     @Test
     void addTrainerTest1(){
         // given
-
         // when
 
         Map<String, Object> request = new HashMap<>();
