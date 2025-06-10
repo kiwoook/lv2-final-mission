@@ -23,4 +23,9 @@ public class Reserved {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Reservation reservation;
+
+    public Reserved(Member member, Reservation reservation) {
+        this.member = member;
+        this.reservation = reservation;
+    }
 }

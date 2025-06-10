@@ -9,6 +9,7 @@ import finalmission.reservation.domain.Reservation;
 import finalmission.reservation.domain.ReservationStatus;
 import finalmission.reservation.dto.request.ReservationCreateRequest;
 import finalmission.reservation.dto.response.ReservationInfoResponse;
+import finalmission.reservation.exception.InAlreadyReservationException;
 import finalmission.reservation.repository.ReservationRepository;
 import finalmission.trainer.domain.Trainer;
 import java.time.LocalDateTime;
@@ -69,6 +70,25 @@ class ReservationServiceTest {
         }).isInstanceOf(NotFoundException.class);
     }
 
+    @DisplayName("중복된 시간이면 예외를 반환한다")
+    @Test
+    void createReservation_throwsException2() {
+        // given
+        Trainer trainer1 = trainerDbFixture.createTrainer1();
+        LocalDateTime reservationDateTime = LocalDateTime.now();
+        Reservation reservation1 = Reservation.create(reservationDateTime, trainer1);
+
+        reservationRepository.save(reservation1);
+
+        ReservationCreateRequest createRequest = new ReservationCreateRequest(reservationDateTime,
+                trainer1.getId());
+
+        // when & then
+        assertThatThrownBy(() -> {
+            reservationService.create(createRequest);
+        }).isInstanceOf(InAlreadyReservationException.class);
+    }
+
     @DisplayName("예약 가능한 날짜를 모두 반환한다")
     @Test
     void getAvailableReservationsTest() {
@@ -76,8 +96,8 @@ class ReservationServiceTest {
         Trainer trainer1 = trainerDbFixture.createTrainer1();
         LocalDateTime reservationDateTime = LocalDateTime.now();
         Reservation reservation1 = Reservation.create(reservationDateTime, trainer1);
-        Reservation reservation2 = Reservation.create(reservationDateTime, trainer1);
-        Reservation reservation3 = Reservation.create(reservationDateTime, trainer1);
+        Reservation reservation2 = Reservation.create(reservationDateTime.plusHours(1), trainer1);
+        Reservation reservation3 = Reservation.create(reservationDateTime.plusHours(2), trainer1);
 
         reservation3.updateStatus(ReservationStatus.COMPLETE);
 
@@ -89,5 +109,4 @@ class ReservationServiceTest {
         // then
         assertThat(result).hasSize(2);
     }
-
 }
