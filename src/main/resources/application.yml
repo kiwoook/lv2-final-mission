@@ -15,4 +15,6 @@ spring:
     username: sa
     password:
 
-
+jwt:
+  secret: mysecretkeysadsadsadsacxzcxzvdfeqrwqe43214rsacxzcxzcxzcsadqewrqwrs
+  expiration: 3600000 # 1 hour in milliseconds
