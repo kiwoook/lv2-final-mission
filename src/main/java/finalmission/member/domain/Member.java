@@ -3,10 +3,12 @@ package finalmission.member.domain;
 
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -25,8 +27,21 @@ public class Member {
     @Embedded
     private Password password;
 
-    public Member(Email email, Password password) {
+    @Enumerated
+    private Roles role;
+
+    @Builder
+    public Member(Email email, Password password, Roles role) {
         this.email = email;
         this.password = password;
+        this.role = role;
+    }
+
+    public static Member create(Email email, Password password) {
+        return Member.builder()
+                .email(email)
+                .password(password)
+                .role(Roles.USER)
+                .build();
     }
 }

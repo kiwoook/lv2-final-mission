@@ -21,7 +21,7 @@ public class MemberService {
         Email email = new Email(createRequest.email());
         Password password = new Password(createRequest.password());
 
-        Member member = new Member(email, password);
+        Member member = Member.create(email, password);
         Member saved = memberRepository.save(member);
 
         return MemberInfoResponse.of(saved);

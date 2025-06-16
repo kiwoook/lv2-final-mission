@@ -1,5 +1,6 @@
 package finalmission.auth.provider;
 
+import finalmission.auth.dto.TokenDto;
 import finalmission.auth.exception.TokenNotFoundException;
 import jakarta.servlet.http.Cookie;
 import org.springframework.stereotype.Component;
@@ -8,7 +9,6 @@ import org.springframework.stereotype.Component;
 public class CookieProvider {
 
     // 쿠키 분리 방법
-
     private static final String TOKEN_COOKIE_NAME = "token";
     private static final int ONE_DAY_SECONDS = 60 * 60 * 24;
 
@@ -22,8 +22,8 @@ public class CookieProvider {
         throw new TokenNotFoundException("해당 토큰 키가 존재하지 않습니다!");
     }
 
-    public Cookie createTokenCookie(String accessToken) {
-        Cookie cookie = new Cookie(TOKEN_COOKIE_NAME, accessToken);
+    public Cookie createTokenCookie(TokenDto tokenDto) {
+        Cookie cookie = new Cookie(TOKEN_COOKIE_NAME, tokenDto.token());
         cookie.setHttpOnly(true);
         cookie.setAttribute("SameSite", "Strict");
         cookie.setPath("/");
