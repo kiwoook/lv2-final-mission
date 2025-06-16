@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import finalmission.common.exception.NotFoundException;
-import finalmission.fixture.TrainerDbFixture;
+import finalmission.fixture.db.TrainerDbFixture;
 import finalmission.reservation.domain.Reservation;
 import finalmission.reservation.domain.ReservationStatus;
 import finalmission.reservation.dto.request.ReservationCreateRequest;
