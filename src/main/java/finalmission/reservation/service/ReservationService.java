@@ -1,5 +1,6 @@
 package finalmission.reservation.service;
 
+import finalmission.auth.dto.MemberInfo;
 import finalmission.common.exception.InvalidArgumentException;
 import finalmission.common.exception.NotFoundException;
 import finalmission.member.domain.Member;
@@ -10,6 +11,7 @@ import finalmission.reservation.domain.Reserved;
 import finalmission.reservation.dto.request.ReservationCreateRequest;
 import finalmission.reservation.dto.request.ReserveRequest;
 import finalmission.reservation.dto.request.ReserveUpdateRequest;
+import finalmission.reservation.dto.response.MyReservedInfoResponse;
 import finalmission.reservation.dto.response.ReservationInfoResponse;
 import finalmission.reservation.exception.InAlreadyReservationException;
 import finalmission.reservation.repository.ReservationRepository;
@@ -44,7 +46,7 @@ public class ReservationService {
 
         Reservation saved = reservationRepository.save(reservation);
 
-        return ReservationInfoResponse.of(saved);
+        return ReservationInfoResponse.from(saved);
     }
 
     private void validateDuplicateReservation(ReservationCreateRequest createRequest) {
@@ -59,29 +61,34 @@ public class ReservationService {
     public List<ReservationInfoResponse> getAvailableReservations() {
         return reservationRepository.findByStatus(ReservationStatus.AVAILABLE)
                 .stream()
-                .map(ReservationInfoResponse::of)
+                .map(ReservationInfoResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<MyReservedInfoResponse> getAllReservationsByMember(MemberInfo memberInfo) {
+        return reservedRepository.findReservedByMember(memberInfo.userId())
+                .stream()
+                .map(reservedDto -> MyReservedInfoResponse.of(reservedDto.id(), reservedDto.reservation()))
                 .toList();
     }
 
     @Transactional
-    public ReservationInfoResponse reserve(ReserveRequest reserveRequest, Long memberId) {
-        return reserve(reserveRequest.id(), memberId);
+    public ReservationInfoResponse reserve(ReserveRequest reserveRequest, MemberInfo memberInfo) {
+        return reserve(reserveRequest.id(), memberInfo);
     }
 
     @Transactional
-    public ReservationInfoResponse update(ReserveUpdateRequest updateRequest, Long memberId) {
+    public ReservationInfoResponse update(ReserveUpdateRequest updateRequest, MemberInfo memberInfo) {
         Long newReservationId = updateRequest.newReservationId();
         Long oldReservationId = updateRequest.oldReservationId();
-        reserve(newReservationId, memberId);
+        reserve(newReservationId, memberInfo);
 
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NotFoundException("해당 유저가 존재하지 않습니다. id = " + memberId));
+        Member member = memberRepository.findById(memberInfo.userId())
+                .orElseThrow(() -> new NotFoundException("해당 유저가 존재하지 않습니다. id = " + memberInfo.userId()));
 
-        Reservation newReservation = reservationRepository.findById(newReservationId)
-                .orElseThrow(() -> new NotFoundException("해당 예약이 존재하지 않습니다. id = " + newReservationId));
-
-        Reservation oldReservation = reservationRepository.findById(oldReservationId)
-                .orElseThrow(() -> new NotFoundException("해당 예약이 존재하지 않습니다 id = " + oldReservationId));
+        Reservation newReservation = getReservation(newReservationId);
+        Reservation oldReservation = getReservation(oldReservationId);
 
         oldReservation.updateStatus(ReservationStatus.AVAILABLE);
 
@@ -90,10 +97,15 @@ public class ReservationService {
 
         reserved.updateReservation(newReservation);
 
-        return ReservationInfoResponse.of(newReservation);
+        return ReservationInfoResponse.from(newReservation);
     }
 
-    public ReservationInfoResponse reserve(Long reservationId, Long memberId) {
+    private Reservation getReservation(Long reservationId) {
+        return reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new NotFoundException("해당 예약이 존재하지 않습니다. id = " + reservationId));
+    }
+
+    public ReservationInfoResponse reserve(Long reservationId, MemberInfo memberInfo) {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new NotFoundException("해당 예약이 존재하지 않습니다."));
 
@@ -101,21 +113,21 @@ public class ReservationService {
             throw new InAlreadyReservationException("이미 사용 중인 예약입니다.");
         }
 
-        Member member = memberRepository.findById(memberId)
+        Member member = memberRepository.findById(memberInfo.userId())
                 .orElseThrow(() -> new NotFoundException("해당 멤버를 찾을 수 없습니다."));
 
         Reserved reserved = new Reserved(member, reservation);
         reservedRepository.save(reserved);
         reservation.updateStatus(ReservationStatus.COMPLETE);
 
-        return ReservationInfoResponse.of(reservation);
+        return ReservationInfoResponse.from(reservation);
     }
 
-    public void cancel(Long reservedId, Long memberId) {
+    public void cancel(Long reservedId, MemberInfo memberInfo) {
         Reserved reserved = reservedRepository.findById(reservedId)
                 .orElseThrow(() -> new NotFoundException("예약되지 않았습니다."));
 
-        if (!reserved.sameMember(memberId)) {
+        if (!reserved.sameMember(memberInfo.userId())) {
             throw new InvalidArgumentException("해당 예약자가 아닙니다.");
         }
 
@@ -124,5 +136,4 @@ public class ReservationService {
 
         reservedRepository.delete(reserved);
     }
-
 }
