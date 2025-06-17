@@ -9,6 +9,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
-    @Query("select M from Member M where M.email = :email and M.password = :password")
+    @Query("select M from Member M where M.email.email = :email and M.password.password = :password")
     Optional<Member> findByEmailAndPassword(String email, String password);
 }

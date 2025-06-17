@@ -1,9 +1,12 @@
 package finalmission.auth;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import finalmission.auth.dto.request.LoginRequest;
 import finalmission.auth.provider.JwtProvider;
-import finalmission.auth.web.controller.request.LoginRequest;
 import finalmission.fixture.db.MemberDbFixture;
 import finalmission.member.domain.Email;
 import finalmission.member.domain.Member;
@@ -61,8 +64,8 @@ class AuthApiTest {
                 .body(objectMapper.writeValueAsString(loginRequest))
                 .when().post("/login")
                 .then().log().all()
-                .statusCode(HttpStatus.OK.value());
-        // 쿠키 값 존재 검증
+                .statusCode(HttpStatus.OK.value())
+                .cookie("token", is(notNullValue()));
     }
 
     @DisplayName("잘못된 비밀번호는 401 상태 코드를 반환한다.")

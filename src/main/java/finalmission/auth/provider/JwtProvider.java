@@ -43,12 +43,11 @@ public class JwtProvider {
                 .compact();
     }
 
-    // 교체 방법 모름
-    public MemberInfo getMemberInfo(String jwt) {
+    public MemberInfo getMemberInfo(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build()
-                .parseClaimsJws(jwt)
+                .parseClaimsJws(token)
                 .getBody();
 
         Double memberId = claims.get(CLAIM_MEMBER_ID, Double.class);

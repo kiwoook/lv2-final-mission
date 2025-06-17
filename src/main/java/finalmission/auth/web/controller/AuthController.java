@@ -1,6 +1,6 @@
 package finalmission.auth.web.controller;
 
-import finalmission.auth.web.controller.request.LoginRequest;
+import finalmission.auth.dto.request.LoginRequest;
 import finalmission.auth.dto.TokenDto;
 import finalmission.auth.provider.CookieProvider;
 import finalmission.auth.web.service.AuthService;
