@@ -3,6 +3,7 @@ package finalmission.reservation.service;
 import finalmission.auth.dto.MemberInfo;
 import finalmission.common.exception.InvalidArgumentException;
 import finalmission.common.exception.NotFoundException;
+import finalmission.holiday.service.HolidayService;
 import finalmission.member.domain.Member;
 import finalmission.member.repository.MemberRepository;
 import finalmission.reservation.domain.Reservation;
@@ -14,17 +15,17 @@ import finalmission.reservation.dto.request.ReserveUpdateRequest;
 import finalmission.reservation.dto.response.MyReservedInfoResponse;
 import finalmission.reservation.dto.response.ReservationInfoResponse;
 import finalmission.reservation.exception.InAlreadyReservationException;
+import finalmission.reservation.exception.InvalidCreateReservationException;
 import finalmission.reservation.repository.ReservationRepository;
 import finalmission.reservation.repository.ReservedRepository;
 import finalmission.trainer.domain.Trainer;
 import finalmission.trainer.repository.TrainerRepository;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @RequiredArgsConstructor
 @Service
 public class ReservationService {
@@ -33,14 +34,14 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final ReservedRepository reservedRepository;
     private final MemberRepository memberRepository;
+    private final HolidayService holidayService;
 
-    // TODO 예약 날짜가 공휴일이면 생성할 수 없다.
     @Transactional
     public ReservationInfoResponse create(ReservationCreateRequest createRequest) {
-        validateDuplicateReservation(createRequest);
+        validateCreateReservation(createRequest);
 
         Trainer trainer = trainerRepository.findById(createRequest.trainerId())
-                .orElseThrow(() -> new NotFoundException("트레이너가 존재하지 않습니다!"));
+                .orElseThrow(() -> new InvalidCreateReservationException("트레이너가 존재하지 않습니다!"));
 
         Reservation reservation = Reservation.create(createRequest.reservationDateTime(), trainer);
 
@@ -49,12 +50,31 @@ public class ReservationService {
         return ReservationInfoResponse.from(saved);
     }
 
+    private void validateCreateReservation(ReservationCreateRequest createRequest) {
+        validateHoliday(createRequest);
+        validateDuplicateReservation(createRequest);
+    }
+
+    private void validateHoliday(ReservationCreateRequest createRequest) {
+        boolean holiday = holidayService.isHoliday(LocalDate.from(createRequest.reservationDateTime()));
+        if (holiday) {
+            throw new InvalidCreateReservationException("공휴일에는 예약을 생성할 수 없습니다!");
+        }
+    }
+
     private void validateDuplicateReservation(ReservationCreateRequest createRequest) {
-        log.info("validate 접근 arg = {}", createRequest);
-        if (reservationRepository.existsByReservationDateTimeAndTrainer_Id(createRequest.reservationDateTime(),
+        if (reservationRepository.existsByReservationDateTimeAndTrainerId(createRequest.reservationDateTime(),
                 createRequest.trainerId())) {
             throw new InAlreadyReservationException("이미 예약이 존재합니다.");
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReservationInfoResponse> getAll() {
+        return reservationRepository.findAll()
+                .stream()
+                .map(ReservationInfoResponse::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)

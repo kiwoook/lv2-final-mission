@@ -57,4 +57,11 @@ public class ReservationController {
 
         return ResponseEntity.ok(responses);
     }
+
+    @GetMapping("/available")
+    public ResponseEntity<List<ReservationInfoResponse>> getAvailableReservations() {
+        List<ReservationInfoResponse> responses = reservationService.getAvailableReservations();
+
+        return ResponseEntity.ok(responses);
+    }
 }

@@ -1,12 +1,12 @@
-package finalmission.member;
+package finalmission.trainer.controller;
 
 import static org.hamcrest.Matchers.is;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import finalmission.member.dto.request.MemberCreateRequest;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-class MemberApiTest {
+class TrainerApiTest {
 
     @LocalServerPort
     int port;
@@ -29,23 +29,24 @@ class MemberApiTest {
         RestAssured.port = port;
     }
 
-    @DisplayName("회원가입을 할 수 있다.")
+    @DisplayName("트레이너를 추가할 수 있다.")
     @Test
-    void signUpTest1() throws JsonProcessingException {
+    void addTrainerTest1(){
         // given
-
-        String email = "tisad@naver.com";
-        MemberCreateRequest memberCreateRequest = new MemberCreateRequest(email, "1234");
-
         // when
+        Map<String, Object> request = new HashMap<>();
+        request.put("name", "name");
+        request.put("birth", "2000-12-18");
 
         // then
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
-                .body(objectMapper.writeValueAsString(memberCreateRequest))
-                .when().post("/members")
+                .body(request)
+                .when().post("/trainers")
                 .then().log().all()
                 .statusCode(HttpStatus.CREATED.value())
-                .body("email", is(email));
+                .body("birth", is("2000-12-18"))
+                .body("name", is("name"));
     }
+
 }

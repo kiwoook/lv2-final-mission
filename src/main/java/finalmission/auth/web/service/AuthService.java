@@ -1,8 +1,8 @@
 package finalmission.auth.web.service;
 
 
-import finalmission.auth.web.controller.request.LoginRequest;
 import finalmission.auth.dto.TokenDto;
+import finalmission.auth.dto.request.LoginRequest;
 import finalmission.auth.exception.InvalidAuthorizationException;
 import finalmission.auth.provider.JwtProvider;
 import finalmission.member.domain.Member;
@@ -28,9 +28,4 @@ public class AuthService {
 
         return new TokenDto(jwt);
     }
-
-    // 로그인 체크한다.
-
-    // 로그아웃을 한다.
-
 }
