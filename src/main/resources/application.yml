@@ -18,3 +18,6 @@ spring:
 jwt:
   secret: mysecretkeysadsadsadsacxzcxzvdfeqrwqe43214rsacxzcxzcxzcsadqewrqwrs
   expiration: 3600000 # 1 hour in milliseconds
+
+holiday-api:
+  service-key: sJ+Lz9TtILnR3+qcTUp+uGxm2QJiToGjZPFUv027hv61eVXQpnLjPINKXAfU+3JdtNcW/GrfjMUieJTCtLiJJg==
