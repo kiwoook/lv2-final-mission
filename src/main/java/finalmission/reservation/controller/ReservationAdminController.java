@@ -26,6 +26,4 @@ public class ReservationAdminController {
         return ResponseEntity.status(HttpStatus.CREATED.value())
                 .body(response);
     }
-
-
 }
