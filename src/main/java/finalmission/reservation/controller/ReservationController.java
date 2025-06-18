@@ -2,10 +2,11 @@ package finalmission.reservation.controller;
 
 import finalmission.auth.dto.MemberInfo;
 import finalmission.auth.resolver.Authenticated;
+import finalmission.reservation.dto.request.ReserveChangeRequest;
 import finalmission.reservation.dto.request.ReserveRequest;
-import finalmission.reservation.dto.request.ReserveUpdateRequest;
 import finalmission.reservation.dto.response.MyReservedInfoResponse;
 import finalmission.reservation.dto.response.ReservationInfoResponse;
+import finalmission.reservation.dto.response.ReservedInfoRequest;
 import finalmission.reservation.service.ReservationService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -28,24 +29,24 @@ public class ReservationController {
     private final ReservationService reservationService;
 
     @PostMapping
-    public ResponseEntity<ReservationInfoResponse> reserve(@Valid @RequestBody ReserveRequest request,
-                                                           @Authenticated MemberInfo memberInfo) {
-        ReservationInfoResponse response = reservationService.reserve(request, memberInfo);
+    public ResponseEntity<ReservedInfoRequest> reserve(@Valid @RequestBody ReserveRequest request,
+                                                       @Authenticated MemberInfo memberInfo) {
+        ReservedInfoRequest response = reservationService.reserve(request, memberInfo);
 
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id, @Authenticated MemberInfo memberInfo) {
+    public ResponseEntity<Void> cancel(@PathVariable Long id, @Authenticated MemberInfo memberInfo) {
         reservationService.cancel(id, memberInfo);
 
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping
-    public ResponseEntity<ReservationInfoResponse> update(@Valid @RequestBody ReserveUpdateRequest updateRequest,
-                                                          @Authenticated MemberInfo memberInfo) {
-        ReservationInfoResponse response = reservationService.update(updateRequest, memberInfo);
+    public ResponseEntity<ReservedInfoRequest> change(@Valid @RequestBody ReserveChangeRequest updateRequest,
+                                                      @Authenticated MemberInfo memberInfo) {
+        ReservedInfoRequest response = reservationService.change(updateRequest, memberInfo);
 
         return ResponseEntity.ok(response);
     }
