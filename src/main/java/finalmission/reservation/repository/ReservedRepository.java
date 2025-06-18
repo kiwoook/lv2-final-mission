@@ -13,8 +13,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ReservedRepository extends JpaRepository<Reserved, Long> {
 
-    Optional<Reserved> findByReservation_IdAndMember_Id(Long reservationId, Long memberId);
-
     Optional<Reserved> findByReservationAndMember(Reservation reservation, Member member);
 
     @Query(""" 

@@ -48,5 +48,4 @@ class TrainerApiTest {
                 .body("birth", is("2000-12-18"))
                 .body("name", is("name"));
     }
-
 }
