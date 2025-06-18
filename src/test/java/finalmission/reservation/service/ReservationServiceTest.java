@@ -1,15 +1,25 @@
 package finalmission.reservation.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import finalmission.auth.dto.MemberInfo;
 import finalmission.common.exception.InvalidArgumentException;
-import finalmission.common.exception.NotFoundException;
+import finalmission.fixture.db.MemberDbFixture;
+import finalmission.fixture.db.ReservationDbFixture;
+import finalmission.fixture.db.ReservedDbFixture;
 import finalmission.fixture.db.TrainerDbFixture;
+import finalmission.member.domain.Member;
+import finalmission.member.domain.Roles;
 import finalmission.reservation.domain.Reservation;
 import finalmission.reservation.domain.ReservationStatus;
+import finalmission.reservation.domain.Reserved;
 import finalmission.reservation.dto.request.ReservationCreateRequest;
+import finalmission.reservation.dto.request.ReserveChangeRequest;
+import finalmission.reservation.dto.request.ReserveRequest;
 import finalmission.reservation.dto.response.ReservationInfoResponse;
+import finalmission.reservation.dto.response.ReservedInfoRequest;
 import finalmission.reservation.exception.InAlreadyReservationException;
 import finalmission.reservation.exception.InvalidCreateReservationException;
 import finalmission.reservation.repository.ReservationRepository;
@@ -36,7 +46,16 @@ class ReservationServiceTest {
     private TrainerDbFixture trainerDbFixture;
 
     @Autowired
+    private ReservationDbFixture reservationDbFixture;
+
+    @Autowired
+    private MemberDbFixture memberDbFixture;
+
+    @Autowired
     private ReservationRepository reservationRepository;
+
+    @Autowired
+    private ReservedDbFixture reservedDbFixture;
 
     @Autowired
     private DbCleanUp dbCleanUp;
@@ -69,12 +88,21 @@ class ReservationServiceTest {
 
     @DisplayName("사용 가능한 날짜에만 예약을 할 수 잇다.")
     @Test
-    void update_throwsException() {
+    void change_throwsException() {
         // given
+        Reserved reserved = reservedDbFixture.createReserved();
+        Reservation completedReservation = reservationDbFixture.createCompletedReservation();
+
+        Long memberId = reserved.getMember().getId();
+        Long oldReservationId = reserved.getReservation().getId();
+        Long newReservationId = completedReservation.getId();
+        ReserveChangeRequest reserveChangeRequest = new ReserveChangeRequest(oldReservationId, newReservationId);
+
+        MemberInfo memberInfo = new MemberInfo(memberId, Roles.USER);
 
         // when & then
         assertThatThrownBy(() -> {
-
+            reservationService.change(reserveChangeRequest, memberInfo);
         }).isInstanceOf(InAlreadyReservationException.class);
     }
 
@@ -126,7 +154,7 @@ class ReservationServiceTest {
             // when & then
             assertThatThrownBy(() -> {
                 reservationService.create(reservationCreateRequest);
-            }).isInstanceOf(NotFoundException.class);
+            }).isInstanceOf(InvalidCreateReservationException.class);
         }
 
         @DisplayName("중복된 시간이면 예외를 반환한다")
@@ -155,21 +183,36 @@ class ReservationServiceTest {
         @Test
         void reservedTest1() {
             // given
+            Reservation reservation = reservationDbFixture.creatReservation1();
+            ReserveRequest reserveRequest = new ReserveRequest(reservation.getId());
+
+            Member user = memberDbFixture.createUser();
+            MemberInfo memberInfo = new MemberInfo(user.getId(), Roles.USER);
 
             // when
+            ReservedInfoRequest result = reservationService.reserve(reserveRequest, memberInfo);
 
             // then
-
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(result.reservation().id()).isEqualTo(reservation.getId());
+                softly.assertThat(result.reservation().status()).isEqualTo(ReservationStatus.COMPLETE);
+            });
         }
 
         @DisplayName("사용 중인 예약은 할 수 없다.")
         @Test
         void reserved_throwsException() {
             // given
+            Reservation reservation = reservationDbFixture.createCompletedReservation();
+
+            ReserveRequest reserveRequest = new ReserveRequest(reservation.getId());
+
+            Member user = memberDbFixture.createUser();
+            MemberInfo memberInfo = new MemberInfo(user.getId(), Roles.USER);
 
             // when & then
             assertThatThrownBy(() -> {
-
+                reservationService.reserve(reserveRequest, memberInfo);
             }).isInstanceOf(InAlreadyReservationException.class);
         }
     }
@@ -180,21 +223,28 @@ class ReservationServiceTest {
         @Test
         void cancelTest1() {
             // given
-
+            Reserved reserved = reservedDbFixture.createReserved();
+            Long memberId = reserved.getMember().getId();
+            MemberInfo memberInfo = new MemberInfo(memberId, Roles.USER);
+            Long id = reserved.getId();
             // when
-
             // then
-
+            assertThatCode(() -> reservationService.cancel(id, memberInfo))
+                    .doesNotThrowAnyException();
         }
 
         @DisplayName("취소 시 해당 예약자가 아니라면 예외를 반환한다. ")
         @Test
         void cancel_throwsException() {
             // given
+            Reserved reserved = reservedDbFixture.createReserved();
+            Long diffMemberId = 999L;
+            MemberInfo memberInfo = new MemberInfo(diffMemberId, Roles.USER);
 
+            Long id = reserved.getId();
             // when & then
             assertThatThrownBy(() -> {
-
+                reservationService.cancel(id, memberInfo);
             }).isInstanceOf(InvalidArgumentException.class);
         }
     }
