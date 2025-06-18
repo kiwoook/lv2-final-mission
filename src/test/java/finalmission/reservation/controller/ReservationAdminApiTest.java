@@ -1,6 +1,6 @@
 package finalmission.reservation.controller;
 
-import finalmission.auth.utils.TokenUtils;
+import finalmission.auth.utils.TokenUtil;
 import finalmission.fixture.db.TrainerDbFixture;
 import finalmission.trainer.domain.Trainer;
 import io.restassured.RestAssured;
@@ -25,7 +25,7 @@ class ReservationAdminApiTest {
     private TrainerDbFixture trainerDbFixture;
 
     @Autowired
-    private TokenUtils tokenUtils;
+    private TokenUtil tokenUtil;
 
     @BeforeEach
     void setUp() {
@@ -46,7 +46,7 @@ class ReservationAdminApiTest {
         // then
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
-                .cookie("token", tokenUtils.createAdminToken())
+                .cookie("token", tokenUtil.createAdminToken())
                 .body(request)
                 .when().post("/admin/reservations")
                 .then().log().all()

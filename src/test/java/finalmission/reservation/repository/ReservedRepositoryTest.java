@@ -34,7 +34,7 @@ class ReservedRepositoryTest {
     void findMyReservedTest1() {
         // given
         Member user = memberDbFixture.createUser();
-        Reservation reservation = reservationDbFixture.creatReservation();
+        Reservation reservation = reservationDbFixture.creatReservation1();
 
         Reserved reserved1 = new Reserved(user, reservation);
         Reserved reserved2 = new Reserved(user, reservation);
