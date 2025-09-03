@@ -111,5 +111,5 @@ jobs:
 
     - name: Health check
       run: |
-        sleep 5
+        sleep 20
         curl -f http://localhost:8080/actuator/health || echo "Health check failed, but continuing..."
