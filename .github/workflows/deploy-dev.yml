@@ -5,6 +5,10 @@ on:
     branches: [ dev ]
   workflow_dispatch:
 
+concurrency:
+  group: deploy-dev-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: self-hosted
