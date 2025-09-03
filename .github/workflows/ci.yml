@@ -1,0 +1,55 @@
+name: CI - Test
+
+on:
+  push:
+    branches: [ main, prod, dev ]
+  pull_request:
+    branches: [ main, prod, dev ]
+
+jobs:
+  test:
+    runs-on: self-hosted
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    - name: Cache Gradle packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Run tests
+      run: ./gradlew test
+
+    - name: Generate test report
+      run: ./gradlew jacocoTestReport
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-${{ github.sha }}
+        path: |
+          build/test-results/test/
+          build/reports/tests/test/
+          build/reports/jacoco/test/
+
+    - name: Comment test results on PR
+      if: github.event_name == 'pull_request'
+      run: |
+        echo "✅ Tests passed for commit ${{ github.sha }}"

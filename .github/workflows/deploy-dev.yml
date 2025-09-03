@@ -1,0 +1,96 @@
+name: Deploy to Development
+
+on:
+  push:
+    branches: [ dev ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    environment: development
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    - name: Cache Gradle packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Run tests
+      run: ./gradlew test
+
+    - name: Build application
+      run: ./gradlew build -x test
+
+    - name: Stop existing dev application
+      run: |
+        PID=$(pgrep -f "spring.profiles.active=dev" || echo "")
+        if [ ! -z "$PID" ]; then
+          echo "🔄 Stopping existing dev application with PID: $PID"
+          kill -15 $PID
+          sleep 10
+          if kill -0 $PID 2>/dev/null; then
+            echo "⚠️ Forcefully killing dev application"
+            kill -9 $PID
+          fi
+          echo "✅ Dev application stopped"
+        else
+          echo "ℹ️ No existing dev application found"
+        fi
+
+    - name: Deploy dev application
+      run: |
+        cd build/libs
+        JAR_FILE=$(ls lv2-final-mission-*.jar | grep -v plain)
+        echo "🚀 Starting dev application: $JAR_FILE"
+        nohup java -jar -Dspring.profiles.active=dev $JAR_FILE > dev-app.log 2>&1 &
+        echo "✅ Dev application deployed successfully"
+
+    - name: Wait for application startup
+      run: |
+        echo "⏳ Waiting for dev application to start..."
+        sleep 15
+
+    - name: Health check
+      run: |
+        echo "🔍 Starting health check for dev environment..."
+        for i in {1..12}; do
+          if curl -f http://localhost:8081/actuator/health; then
+            echo "✅ Dev health check passed!"
+            echo "🌐 Application available at: http://localhost:8081"
+            exit 0
+          else
+            echo "⏳ Health check attempt $i/12 failed, retrying in 5 seconds..."
+            sleep 5
+          fi
+        done
+        echo "❌ Dev health check failed after 12 attempts"
+        echo "📋 Checking application logs..."
+        tail -50 build/libs/dev-app.log || echo "No logs available"
+        exit 1
+
+    - name: Deployment notification
+      if: success()
+      run: |
+        echo "🎉 Development deployment completed successfully!"
+        echo "📊 Environment: Development"
+        echo "🌐 URL: http://localhost:8081"
+        echo "🔧 Profile: dev"
+        echo "💾 Database: H2 (In-memory)"
