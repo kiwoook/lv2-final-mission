@@ -91,8 +91,8 @@ jobs:
 
     - name: Start Docker Compose
       run: |
-        docker-compose down || true
-        docker-compose up -d
+        docker compose down || true
+        docker compose up -d
 
     - name: Wait for MySQL to be ready
       run: |
