@@ -1,6 +1,6 @@
 package finalmission.common.config;
 
-import finalmission.holiday.client.HolidayClient;
+import finalmission.holiday.infra.client.HolidayClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
@@ -24,4 +24,12 @@ public class HttpInterfaceConfig {
 
         return httpServiceProxyFactory.createClient(HolidayClient.class);
     }
+
+    @Bean
+    public RestClient restClient() {
+        return RestClient.builder()
+                .baseUrl(HOLIDAY_SERVICE_URL)
+                .build();
+    }
+
 }

@@ -23,12 +23,13 @@ public class Reserved {
     @ManyToOne(fetch = FetchType.LAZY)
     private Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Reservation reservation;
 
     public Reserved(Member member, Reservation reservation) {
         this.member = member;
         this.reservation = reservation;
+        reservation.updateStatus(ReservationStatus.COMPLETE);
     }
 
     public void updateReservation(Reservation reservation) {

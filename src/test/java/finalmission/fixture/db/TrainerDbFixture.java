@@ -1,4 +1,4 @@
-package finalmission.fixture;
+package finalmission.fixture.db;
 
 import finalmission.trainer.domain.Trainer;
 import finalmission.trainer.repository.TrainerRepository;
@@ -18,5 +18,4 @@ public class TrainerDbFixture {
 
         return trainerRepository.save(trainer);
     }
-
 }

@@ -1,0 +1,42 @@
+package finalmission.auth.provider;
+
+import finalmission.auth.dto.TokenDto;
+import finalmission.auth.exception.TokenNotFoundException;
+import jakarta.servlet.http.Cookie;
+import org.springframework.stereotype.Component;
+
+@Component
+public class CookieProvider {
+
+    // 쿠키 분리 방법
+    private static final String TOKEN_COOKIE_NAME = "token";
+    private static final int ONE_DAY_SECONDS = 60 * 60 * 24;
+
+    public String extractTokenFromCookie(Cookie[] cookies) {
+
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals(TOKEN_COOKIE_NAME)) {
+                return cookie.getValue();
+            }
+        }
+        throw new TokenNotFoundException("해당 토큰 키가 존재하지 않습니다!");
+    }
+
+    public Cookie createTokenCookie(TokenDto tokenDto) {
+        Cookie cookie = new Cookie(TOKEN_COOKIE_NAME, tokenDto.token());
+        cookie.setHttpOnly(true);
+        cookie.setAttribute("SameSite", "Strict");
+        cookie.setPath("/");
+        cookie.setMaxAge(ONE_DAY_SECONDS);
+        return cookie;
+    }
+
+    public Cookie createExpiredTokenCookie() {
+        Cookie expiredCookie = new Cookie(TOKEN_COOKIE_NAME, null);
+        expiredCookie.setPath("/");
+        expiredCookie.setAttribute("SameSite", "Strict");
+        expiredCookie.setMaxAge(0);
+        expiredCookie.setHttpOnly(true);
+        return expiredCookie;
+    }
+}

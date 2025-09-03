@@ -1,4 +1,4 @@
-package finalmission.member;
+package finalmission.member.controller;
 
 import static org.hamcrest.Matchers.is;
 
@@ -38,7 +38,6 @@ class MemberApiTest {
         MemberCreateRequest memberCreateRequest = new MemberCreateRequest(email, "1234");
 
         // when
-
         // then
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)

@@ -1,6 +1,5 @@
 package finalmission.reservation.domain;
 
-
 import finalmission.trainer.domain.Trainer;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
