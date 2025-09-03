@@ -1,7 +1,10 @@
 name: Deploy to Development
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI - Test"]
+    types:
+      - completed
     branches: [ dev ]
   workflow_dispatch:
 
@@ -13,6 +16,7 @@ jobs:
   deploy:
     runs-on: self-hosted
     environment: development
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     
     steps:
     - name: Checkout code
@@ -37,10 +41,7 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    - name: Run tests
-      run: ./gradlew test
-
-    - name: Build application
+    - name: Build application (skip tests - already done in CI)
       run: ./gradlew build -x test
 
     - name: Stop existing dev application
