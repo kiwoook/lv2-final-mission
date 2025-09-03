@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: lv2-final-mission-mysql
+    restart: unless-stopped
+    ports:
+      - "33061:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: lv2_final_mission
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: apppassword
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+volumes:
+  mysql_data:

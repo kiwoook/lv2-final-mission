@@ -1,0 +1,10 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:33061/lv2_final_mission?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
+    username: app_user
+    password: apppassword
