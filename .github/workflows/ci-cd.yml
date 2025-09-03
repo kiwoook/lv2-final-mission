@@ -106,7 +106,8 @@ jobs:
     - name: Deploy application
       run: |
         cd build/libs
-        nohup java -jar -Dspring.profiles.active=prod *.jar > /dev/null 2>&1 &
+        JAR_FILE=$(ls lv2-final-mission-*.jar | grep -v plain)
+        nohup java -jar -Dspring.profiles.active=prod $JAR_FILE > /dev/null 2>&1 &
         echo "Application deployed successfully"
 
     - name: Health check
